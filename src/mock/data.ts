@@ -40,13 +40,12 @@ function chance(rng: () => number, probability: number): boolean {
 }
 
 const CHIP_MAP: Record<string, { chip: string; hardwareCfi: boolean }> = {
-  Mate80Pro: { chip: 'Kirin 9030', hardwareCfi: true },
-  Mate70: { chip: 'Kirin 9010', hardwareCfi: true },
-  Pura80: { chip: 'Kirin 9020', hardwareCfi: true },
-  'MatePad Pro 13.2': { chip: 'Kirin 9000S', hardwareCfi: true },
-  'MatePad 11.5': { chip: 'Kirin 9000W', hardwareCfi: false },
-  Watch5: { chip: 'Kirin A2', hardwareCfi: false },
-  Vision5: { chip: 'Kirin 990E', hardwareCfi: false },
+  'CMM(CosmosU)': { chip: 'Kirin 9030', hardwareCfi: true },
+  'ALN(Allen)': { chip: 'Kirin 9010', hardwareCfi: true },
+  'HAD(Harden)': { chip: 'Kirin 9000C', hardwareCfi: true },
+  'HPR(Hopper)': { chip: 'Kirin 9000C', hardwareCfi: true },
+  'DAL(Dail)': { chip: 'Kirin 9000S', hardwareCfi: true },
+  'NIZ(Niz)': { chip: 'Kirin A2', hardwareCfi: false },
 };
 
 const BINARY_POOL = [
@@ -246,32 +245,91 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
             productLine: '手机',
             children: [
               {
-                key: 'prod-Mate80Pro',
-                title: 'Mate80Pro',
+                key: 'prod-CMM',
+                title: 'CMM(CosmosU)',
                 productLine: '手机',
-                product: 'Mate80Pro',
+                product: 'CMM(CosmosU)',
                 children: [
-                  { key: 'ver-phone-Mate80Pro-HO7.0', title: 'HO7.0', productLine: '手机', product: 'Mate80Pro', version: 'HO7.0' },
-                  { key: 'ver-phone-Mate80Pro-HO6.0', title: 'HO6.0', productLine: '手机', product: 'Mate80Pro', version: 'HO6.0' },
+                  {
+                    key: 'ver-phone-CMM-HO7.0.0.37',
+                    title: 'HO7.0.0.37',
+                    productLine: '手机',
+                    product: 'CMM(CosmosU)',
+                    version: 'HO7.0.0.37',
+                  },
                 ],
               },
               {
-                key: 'prod-Mate70',
-                title: 'Mate70',
+                key: 'prod-ALN',
+                title: 'ALN(Allen)',
                 productLine: '手机',
-                product: 'Mate70',
+                product: 'ALN(Allen)',
                 children: [
-                  { key: 'ver-phone-Mate70-HO7.0', title: 'HO7.0', productLine: '手机', product: 'Mate70', version: 'HO7.0' },
-                  { key: 'ver-phone-Mate70-HO5.1', title: 'HO5.1', productLine: '手机', product: 'Mate70', version: 'HO5.1' },
+                  {
+                    key: 'ver-phone-ALN-HO7.0.0.37',
+                    title: 'HO7.0.0.37',
+                    productLine: '手机',
+                    product: 'ALN(Allen)',
+                    version: 'HO7.0.0.37',
+                  },
+                  {
+                    key: 'ver-phone-ALN-HO6.1.0.135',
+                    title: 'HO6.1.0.135',
+                    productLine: '手机',
+                    product: 'ALN(Allen)',
+                    version: 'HO6.1.0.135',
+                  },
+                ],
+              },
+            ],
+          },
+          {
+            key: 'line-pc',
+            title: 'PC',
+            productLine: 'PC',
+            children: [
+              {
+                key: 'prod-HAD',
+                title: 'HAD(Harden)',
+                productLine: 'PC',
+                product: 'HAD(Harden)',
+                children: [
+                  {
+                    key: 'ver-pc-HAD-HO7.0.0.37',
+                    title: 'HO7.0.0.37',
+                    productLine: 'PC',
+                    product: 'HAD(Harden)',
+                    version: 'HO7.0.0.37',
+                  },
+                  {
+                    key: 'ver-pc-HAD-HO6.1.0.135',
+                    title: 'HO6.1.0.135',
+                    productLine: 'PC',
+                    product: 'HAD(Harden)',
+                    version: 'HO6.1.0.135',
+                  },
                 ],
               },
               {
-                key: 'prod-Pura80',
-                title: 'Pura80',
-                productLine: '手机',
-                product: 'Pura80',
+                key: 'prod-HPR',
+                title: 'HPR(Hopper)',
+                productLine: 'PC',
+                product: 'HPR(Hopper)',
                 children: [
-                  { key: 'ver-phone-Pura80-HO7.0', title: 'HO7.0', productLine: '手机', product: 'Pura80', version: 'HO7.0' },
+                  {
+                    key: 'ver-pc-HPR-HO7.0.0.38',
+                    title: 'HO7.0.0.38',
+                    productLine: 'PC',
+                    product: 'HPR(Hopper)',
+                    version: 'HO7.0.0.38',
+                  },
+                  {
+                    key: 'ver-pc-HPR-HO6.1.0.135',
+                    title: 'HO6.1.0.135',
+                    productLine: 'PC',
+                    product: 'HPR(Hopper)',
+                    version: 'HO6.1.0.135',
+                  },
                 ],
               },
             ],
@@ -282,32 +340,24 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
             productLine: '平板',
             children: [
               {
-                key: 'prod-MatePadPro',
-                title: 'MatePad Pro 13.2',
+                key: 'prod-DAL',
+                title: 'DAL(Dail)',
                 productLine: '平板',
-                product: 'MatePad Pro 13.2',
+                product: 'DAL(Dail)',
                 children: [
                   {
-                    key: 'ver-tablet-MatePadPro-HO7.0',
-                    title: 'HO7.0',
+                    key: 'ver-tablet-DAL-HO7.0.0.34',
+                    title: 'HO7.0.0.34',
                     productLine: '平板',
-                    product: 'MatePad Pro 13.2',
-                    version: 'HO7.0',
+                    product: 'DAL(Dail)',
+                    version: 'HO7.0.0.34',
                   },
-                ],
-              },
-              {
-                key: 'prod-MatePad115',
-                title: 'MatePad 11.5',
-                productLine: '平板',
-                product: 'MatePad 11.5',
-                children: [
                   {
-                    key: 'ver-tablet-MatePad115-HO6.0',
-                    title: 'HO6.0',
+                    key: 'ver-tablet-DAL-HO6.1.0.135',
+                    title: 'HO6.1.0.135',
                     productLine: '平板',
-                    product: 'MatePad 11.5',
-                    version: 'HO6.0',
+                    product: 'DAL(Dail)',
+                    version: 'HO6.1.0.135',
                   },
                 ],
               },
@@ -319,28 +369,18 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
             productLine: '穿戴',
             children: [
               {
-                key: 'prod-Watch5',
-                title: 'Watch5',
+                key: 'prod-NIZ',
+                title: 'NIZ(Niz)',
                 productLine: '穿戴',
-                product: 'Watch5',
+                product: 'NIZ(Niz)',
                 children: [
-                  { key: 'ver-wear-Watch5-HO5.0', title: 'HO5.0', productLine: '穿戴', product: 'Watch5', version: 'HO5.0' },
-                ],
-              },
-            ],
-          },
-          {
-            key: 'line-tv',
-            title: '智慧屏',
-            productLine: '智慧屏',
-            children: [
-              {
-                key: 'prod-Vision5',
-                title: 'Vision5',
-                productLine: '智慧屏',
-                product: 'Vision5',
-                children: [
-                  { key: 'ver-tv-Vision5-HO5.0', title: 'HO5.0', productLine: '智慧屏', product: 'Vision5', version: 'HO5.0' },
+                  {
+                    key: 'ver-wear-NIZ-HO7.0.0.35',
+                    title: 'HO7.0.0.35',
+                    productLine: '穿戴',
+                    product: 'NIZ(Niz)',
+                    version: 'HO7.0.0.35',
+                  },
                 ],
               },
             ],

@@ -26,8 +26,8 @@ export const API_BASE_URL = '/api';
 
 export const DEFAULT_SELECTION = {
   productLine: '手机',
-  product: 'Mate80Pro',
-  version: 'HO7.0',
+  product: 'CMM(CosmosU)',
+  version: 'HO7.0.0.37',
   capability: 'user-enablement' as CapabilityKey,
   capabilityLabel: '用户态安全能力使能分析',
 };
