@@ -3,6 +3,13 @@ import { Input, Select, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { BinaryRecord } from '../types/dashboard';
 
+/**
+ * 控制表格是否显示「所属部件 / 业务owner / 源码路径」。
+ * false：前端暂时隐藏这三列；后端数据与接口不变。
+ * 需要恢复显示时改为 true 即可。
+ */
+export const SHOW_BINARY_META_COLUMNS = false;
+
 interface BinaryTableProps {
   data: BinaryRecord[];
   loading: boolean;
@@ -30,6 +37,27 @@ const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
   { title: 'RELRO分析', dataIndex: 'relro' },
 ];
 
+const META_COLUMNS: ColumnsType<BinaryRecord> = [
+  {
+    title: '所属部件',
+    dataIndex: 'component',
+    width: 150,
+    ellipsis: true,
+  },
+  {
+    title: '业务owner',
+    dataIndex: 'owner',
+    width: 150,
+    ellipsis: true,
+  },
+  {
+    title: '源码路径',
+    dataIndex: 'sourcePath',
+    width: 280,
+    ellipsis: true,
+  },
+];
+
 export default function BinaryTable({
   data,
   loading,
@@ -48,24 +76,7 @@ export default function BinaryTable({
         width: 180,
         ellipsis: true,
       },
-      {
-        title: '所属部件',
-        dataIndex: 'component',
-        width: 150,
-        ellipsis: true,
-      },
-      {
-        title: '业务owner',
-        dataIndex: 'owner',
-        width: 150,
-        ellipsis: true,
-      },
-      {
-        title: '源码路径',
-        dataIndex: 'sourcePath',
-        width: 280,
-        ellipsis: true,
-      },
+      ...(SHOW_BINARY_META_COLUMNS ? META_COLUMNS : []),
       ...FLAG_COLUMNS.map((column) => ({
         title: column.title,
         dataIndex: column.dataIndex,
@@ -76,6 +87,8 @@ export default function BinaryTable({
     ],
     [],
   );
+
+  const tableScrollX = SHOW_BINARY_META_COLUMNS ? 2100 : 1520;
 
   const filtered = useMemo(() => {
     const text = keyword.trim().toLowerCase();
@@ -111,7 +124,7 @@ export default function BinaryTable({
         loading={loading}
         columns={columns}
         dataSource={filtered}
-        scroll={{ x: 2100, y: 360 }}
+        scroll={{ x: tableScrollX, y: 360 }}
         pagination={{
           pageSize: 10,
           showSizeChanger: true,
