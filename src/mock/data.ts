@@ -1,107 +1,15 @@
 import type {
-  AnalysisMode,
   AnalysisProgress,
   AnalysisStartResult,
   AnalysisStatus,
-  BinaryRecord,
   DashboardData,
   DashboardQuery,
-  MetricBreakdown,
-  MetricItem,
   NavTreeData,
 } from '../types/dashboard';
-import { CAPABILITY_DEFINITIONS, isCapabilityEnabled, isKernelCapability } from '../capabilities/definitions';
+import { CAPABILITY_DEFINITIONS, isCapabilityEnabled } from '../capabilities/definitions';
+import { getMockDashboardData } from './results';
 
 const delay = (ms = 280) => new Promise((resolve) => setTimeout(resolve, ms));
-
-function hashString(input: string): number {
-  let hash = 2166136261;
-  for (let i = 0; i < input.length; i += 1) {
-    hash ^= input.charCodeAt(i);
-    hash = Math.imul(hash, 16777619);
-  }
-  return hash >>> 0;
-}
-
-function createRng(seed: number) {
-  let state = seed || 1;
-  return () => {
-    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
-    return state / 4294967296;
-  };
-}
-
-function randInt(rng: () => number, min: number, max: number): number {
-  return Math.floor(rng() * (max - min + 1)) + min;
-}
-
-function chance(rng: () => number, probability: number): boolean {
-  return rng() < probability;
-}
-
-const CHIP_MAP: Record<string, { chip: string; hardwareCfi: boolean }> = {
-  'CMM(CosmosU)': { chip: 'Kirin 9030', hardwareCfi: true },
-  'ALN(Allen)': { chip: 'Kirin 9010', hardwareCfi: true },
-  'HAD(Harden)': { chip: 'Kirin 9000C', hardwareCfi: true },
-  'HPR(Hopper)': { chip: 'Kirin 9000C', hardwareCfi: true },
-  'DAL(Dail)': { chip: 'Kirin 9000S', hardwareCfi: true },
-  'NIZ(Niz)': { chip: 'Kirin A2', hardwareCfi: false },
-};
-
-const BINARY_POOL = [
-  { name: 'libhwui.so', component: 'graphic', owner: '张伟 00381234', path: 'foundation/graphic/graphic_2d' },
-  { name: 'libbinder.so', component: 'ipc', owner: '李娜 00384567', path: 'foundation/communication/ipc' },
-  { name: 'libc.so', component: 'musl', owner: '王强 00382301', path: 'third_party/musl' },
-  { name: 'libutils.so', component: 'utils', owner: '赵敏 00386712', path: 'commonlibrary/c_utils' },
-  { name: 'libseccomp.so', component: 'security', owner: '刘洋 00389021', path: 'base/security/selinux' },
-  { name: 'libcrypto.so', component: 'crypto', owner: '陈晨 00380119', path: 'base/security/crypto_framework' },
-  { name: 'libssl.so', component: 'crypto', owner: '陈晨 00380119', path: 'base/security/crypto_framework' },
-  { name: 'libhilog.so', component: 'hiview', owner: '周杰 00385640', path: 'base/hiviewdfx/hilog' },
-  { name: 'libhitrace.so', component: 'hiview', owner: '周杰 00385640', path: 'base/hiviewdfx/hitrace' },
-  { name: 'libace_engine.so', component: 'arkui', owner: '吴倩 00387890', path: 'foundation/arkui/ace_engine' },
-  { name: 'libace_napi.so', component: 'arkui', owner: '吴倩 00387890', path: 'foundation/arkui/napi' },
-  { name: 'libwindow.so', component: 'window', owner: '孙浩 00383456', path: 'foundation/window/window_manager' },
-  { name: 'libsurface.so', component: 'graphic', owner: '张伟 00381234', path: 'foundation/graphic/graphic_2d' },
-  { name: 'libmedia.so', component: 'multimedia', owner: '郑华 00380987', path: 'foundation/multimedia/player_framework' },
-  { name: 'libcamera_host.so', component: 'camera', owner: '冯雪 00382210', path: 'foundation/multimedia/camera_framework' },
-  { name: 'libaudio_client.so', component: 'audio', owner: '韩磊 00384111', path: 'foundation/multimedia/audio_framework' },
-  { name: 'libnetstack.so', component: 'netstack', owner: '曹丽 00385502', path: 'foundation/communication/netstack' },
-  { name: 'libwifi_manager.so', component: 'wifi', owner: '邓凯 00386630', path: 'foundation/communication/wifi' },
-  { name: 'libbluetooth.so', component: 'bluetooth', owner: '彭涛 00387741', path: 'foundation/communication/bluetooth' },
-  { name: 'libtelephony.so', component: 'telephony', owner: '萧然 00388852', path: 'foundation/communication/telephony' },
-  { name: 'libdistributeddata.so', component: 'distributeddatamgr', owner: '何敏 00381163', path: 'foundation/distributeddatamgr/kv_store' },
-  { name: 'libfilemgmt.so', component: 'filemanagement', owner: '罗成 00382474', path: 'foundation/filemanagement/app_file_service' },
-  { name: 'libability.so', component: 'ability', owner: '高圆 00383385', path: 'foundation/ability/ability_runtime' },
-  { name: 'libbundlefwk.so', component: 'bundlemanager', owner: '梁静 00384496', path: 'foundation/bundlemanager/bundle_framework' },
-  { name: 'libaccess_token.so', component: 'access_token', owner: '宋宁 00385507', path: 'base/security/access_token' },
-  { name: 'libhuks.so', component: 'huks', owner: '唐雪 00386618', path: 'base/security/huks' },
-  { name: 'libdevice_auth.so', component: 'device_auth', owner: '许峰 00387729', path: 'base/security/device_auth' },
-  { name: 'libdlp.so', component: 'dlp', owner: '沈悦 00388830', path: 'base/security/dlp_permission_service' },
-  { name: 'init', component: 'startup', owner: '马超 00380941', path: 'base/startup/init' },
-  { name: 'ueventd', component: 'startup', owner: '马超 00380941', path: 'base/startup/init' },
-  { name: 'servicemanager', component: 'ipc', owner: '李娜 00384567', path: 'foundation/communication/ipc' },
-  { name: 'samgr', component: 'systemabilitymgr', owner: '蒋欣 00381252', path: 'foundation/systemabilitymgr/samgr' },
-  { name: 'foundation', component: 'systemabilitymgr', owner: '蒋欣 00381252', path: 'foundation/systemabilitymgr/safwk' },
-  { name: 'appspawn', component: 'startup', owner: '马超 00380941', path: 'base/startup/appspawn' },
-  { name: 'nativespawn', component: 'startup', owner: '马超 00380941', path: 'base/startup/appspawn' },
-  { name: 'render_service', component: 'graphic', owner: '张伟 00381234', path: 'foundation/graphic/graphic_2d' },
-  { name: 'window_manager', component: 'window', owner: '孙浩 00383456', path: 'foundation/window/window_manager' },
-  { name: 'audio_server', component: 'audio', owner: '韩磊 00384111', path: 'foundation/multimedia/audio_framework' },
-  { name: 'camera_server', component: 'camera', owner: '冯雪 00382210', path: 'foundation/multimedia/camera_framework' },
-  { name: 'multimodalinput', component: 'multimodalinput', owner: '崔宁 00383321', path: 'foundation/multimodalinput/input' },
-  { name: 'wifi_manager_service', component: 'wifi', owner: '邓凯 00386630', path: 'foundation/communication/wifi' },
-  { name: 'bluetooth_service', component: 'bluetooth', owner: '彭涛 00387741', path: 'foundation/communication/bluetooth' },
-  { name: 'telephony_service', component: 'telephony', owner: '萧然 00388852', path: 'foundation/communication/telephony' },
-  { name: 'time_service', component: 'time', owner: '姚蕾 00384432', path: 'base/time/time_service' },
-  { name: 'power_manager', component: 'powermgr', owner: '汪洋 00385543', path: 'base/powermgr/power_manager' },
-  { name: 'battery_service', component: 'powermgr', owner: '汪洋 00385543', path: 'base/powermgr/battery_manager' },
-  { name: 'thermal_service', component: 'powermgr', owner: '汪洋 00385543', path: 'base/powermgr/thermal_manager' },
-  { name: 'vendor.camera.hal', component: 'vendor_camera', owner: '冯雪 00382210', path: 'vendor/huawei/camera' },
-  { name: 'vendor.audio.hal', component: 'vendor_audio', owner: '韩磊 00384111', path: 'vendor/huawei/audio' },
-  { name: 'libvendor_display.so', component: 'vendor_display', owner: '张伟 00381234', path: 'vendor/huawei/display' },
-  { name: 'libvendor_sensor.so', component: 'vendor_sensor', owner: '崔宁 00383321', path: 'vendor/huawei/sensor' },
-  { name: 'libvendor_nfc.so', component: 'vendor_nfc', owner: '曹丽 00385502', path: 'vendor/huawei/nfc' },
-];
 
 const KEY_PROCESS_SET: Record<string, string[]> = {
   关键系统进程: ['init', 'appspawn', 'nativespawn', 'samgr', 'foundation', 'servicemanager'],
@@ -118,118 +26,6 @@ const KEY_PROCESS_SET: Record<string, string[]> = {
   支付安全进程: ['libhuks.so', 'libaccess_token.so', 'libdevice_auth.so', 'libcrypto.so', 'libssl.so'],
   锁屏认证进程: ['libaccess_token.so', 'libhuks.so', 'libdevice_auth.so', 'multimodalinput'],
 };
-
-function buildBreakdown(rng: () => number, total: number): MetricBreakdown {
-  const systemLib = Math.round(total * (0.42 + rng() * 0.08));
-  const systemBin = Math.round(total * (0.18 + rng() * 0.05));
-  const vendorLib = Math.round(total * (0.22 + rng() * 0.05));
-  const vendorBin = Math.max(total - systemLib - systemBin - vendorLib, 0);
-  return {
-    system_lib64: systemLib,
-    system_bin: systemBin,
-    vendor_lib64: vendorLib,
-    vendor_bin: vendorBin,
-  };
-}
-
-function scaleBreakdown(source: MetricBreakdown, ratio: number): MetricBreakdown {
-  return {
-    system_lib64: Math.round(source.system_lib64 * ratio),
-    system_bin: Math.round(source.system_bin * ratio),
-    vendor_lib64: Math.round(source.vendor_lib64 * ratio),
-    vendor_bin: Math.round(source.vendor_bin * ratio),
-  };
-}
-
-function buildMetrics(rng: () => number, kernel: boolean): MetricItem[] {
-  const baseTotal = kernel ? randInt(rng, 420, 680) : randInt(rng, 1800, 3200);
-  const totalBreakdown = buildBreakdown(rng, baseTotal);
-
-  const clang = 0.72 + rng() * 0.18;
-  const pac = 0.61 + rng() * 0.22;
-  const bti = 0.58 + rng() * 0.24;
-  const stack = 0.81 + rng() * 0.14;
-  const retGuard = 0.55 + rng() * 0.25;
-
-  const percent = (ratio: number) => Number((ratio * 100).toFixed(1));
-
-  return [
-    {
-      key: 'total',
-      title: '二进制总数',
-      value: baseTotal,
-      unit: 'count',
-      breakdown: totalBreakdown,
-    },
-    {
-      key: 'clangCfi',
-      title: 'Clang 前向 CFI 使能比例',
-      value: percent(clang),
-      unit: 'percent',
-      breakdown: scaleBreakdown(totalBreakdown, clang),
-    },
-    {
-      key: 'pacCfi',
-      title: 'PAC 后向 CFI 使能比例',
-      value: percent(pac),
-      unit: 'percent',
-      breakdown: scaleBreakdown(totalBreakdown, pac),
-    },
-    {
-      key: 'bti',
-      title: 'BTI 使能比例',
-      value: percent(bti),
-      unit: 'percent',
-      breakdown: scaleBreakdown(totalBreakdown, bti),
-    },
-    {
-      key: 'stackProtect',
-      title: '栈保护使能比例',
-      value: percent(stack),
-      unit: 'percent',
-      breakdown: scaleBreakdown(totalBreakdown, stack),
-    },
-    {
-      key: 'retGuard',
-      title: 'retGuard 使能比例',
-      value: percent(retGuard),
-      unit: 'percent',
-      breakdown: scaleBreakdown(totalBreakdown, retGuard),
-    },
-  ];
-}
-
-function buildBinaries(rng: () => number, query: DashboardQuery): BinaryRecord[] {
-  const kernelBoost = isKernelCapability(query.capability) ? 0.08 : 0;
-  const rows = BINARY_POOL.map((item, index) => {
-    const vendor = item.component.startsWith('vendor');
-    return {
-      id: `${query.product}-${query.version}-${index}`,
-      name: item.name,
-      component: item.component,
-      owner: item.owner,
-      sourcePath: item.path,
-      clangCfi: chance(rng, 0.78 - (vendor ? 0.12 : 0) + kernelBoost),
-      pacBe: chance(rng, 0.7 - (vendor ? 0.1 : 0) + kernelBoost),
-      pacForwardCfi: chance(rng, 0.66 - (vendor ? 0.14 : 0) + kernelBoost),
-      bti: chance(rng, 0.64 - (vendor ? 0.12 : 0)),
-      stackProtect: chance(rng, 0.88 - (vendor ? 0.08 : 0)),
-      retGuard: chance(rng, 0.62 - (vendor ? 0.16 : 0)),
-      pacDfi: chance(rng, 0.48 - (vendor ? 0.1 : 0)),
-      ubsan: chance(rng, 0.41),
-      bufferOverflow: chance(rng, 0.73),
-      integerOverflow: chance(rng, 0.69),
-      pie: chance(rng, 0.93),
-      relro: chance(rng, 0.86),
-    };
-  });
-
-  if (!query.keyProcess || query.keyProcess === '全部进程') {
-    return rows;
-  }
-  const allow = new Set(KEY_PROCESS_SET[query.keyProcess] ?? []);
-  return rows.filter((row) => allow.has(row.name));
-}
 
 export async function mockFetchNavTree(): Promise<NavTreeData> {
   await delay(120);
@@ -537,20 +333,18 @@ export async function mockFetchDashboard(query: DashboardQuery): Promise<Dashboa
     throw new Error(status.message || '当前选项的分析尚未完成，无法查看结果');
   }
 
-  const seed = hashString(`${query.product}|${query.version}|${query.capability}|${query.keyProcess ?? ''}`);
-  const rng = createRng(seed);
-  const chipInfo = CHIP_MAP[query.product] ?? { chip: 'Kirin 9000', hardwareCfi: false };
-  const mode: AnalysisMode = isKernelCapability(query.capability) ? '内核态' : '用户态';
+  const data = getMockDashboardData(query);
+  if (!data) {
+    throw new Error(`未找到 ${query.productLine} / ${query.product} / ${query.version} 对应的结果数据文件`);
+  }
 
+  if (!query.keyProcess || query.keyProcess === '全部进程') {
+    return data;
+  }
+
+  const allow = new Set(KEY_PROCESS_SET[query.keyProcess] ?? []);
   return {
-    summary: {
-      product: query.product,
-      version: query.version,
-      mode,
-      chip: chipInfo.chip,
-      hardwareCfiSupported: chipInfo.hardwareCfi,
-    },
-    metrics: buildMetrics(rng, isKernelCapability(query.capability)),
-    binaries: buildBinaries(rng, query),
+    ...data,
+    binaries: data.binaries.filter((row) => allow.has(row.name)),
   };
 }
