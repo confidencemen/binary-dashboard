@@ -66,6 +66,8 @@ export default function BinaryTable({
   onKeyProcessChange,
 }: BinaryTableProps) {
   const [keyword, setKeyword] = useState('');
+  const [current, setCurrent] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
 
   const columns: ColumnsType<BinaryRecord> = useMemo(
     () => [
@@ -98,6 +100,11 @@ export default function BinaryTable({
     return data.filter((item) => item.name.toLowerCase().includes(text));
   }, [data, keyword]);
 
+  const handleKeywordChange = (value: string) => {
+    setKeyword(value);
+    setCurrent(1);
+  };
+
   return (
     <section className="table-panel">
       <div className="table-panel__toolbar">
@@ -106,7 +113,8 @@ export default function BinaryTable({
           className="table-panel__search"
           placeholder="搜索二进制名称"
           value={keyword}
-          onChange={(event) => setKeyword(event.target.value)}
+          onChange={(event) => handleKeywordChange(event.target.value)}
+          onSearch={(value) => handleKeywordChange(value)}
         />
         <div className="table-panel__filter">
           <span>关键进程安全分析</span>
@@ -114,7 +122,10 @@ export default function BinaryTable({
             className="table-panel__select"
             value={keyProcess}
             options={keyProcessOptions.map((item) => ({ label: item, value: item }))}
-            onChange={onKeyProcessChange}
+            onChange={(value) => {
+              onKeyProcessChange(value);
+              setCurrent(1);
+            }}
           />
         </div>
       </div>
@@ -126,9 +137,15 @@ export default function BinaryTable({
         dataSource={filtered}
         scroll={{ x: tableScrollX, y: 360 }}
         pagination={{
-          pageSize: 10,
+          current,
+          pageSize,
           showSizeChanger: true,
+          pageSizeOptions: [10, 20, 50, 100],
           showTotal: (total) => `共 ${total} 条`,
+          onChange: (page, size) => {
+            setCurrent(page);
+            setPageSize(size);
+          },
         }}
       />
     </section>
