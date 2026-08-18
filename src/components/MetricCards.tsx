@@ -16,9 +16,10 @@ function RingChart({ percent }: { percent: number }) {
   const radius = 42;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference * (1 - Math.min(Math.max(percent, 0), 100) / 100);
+  const tone = percent >= 85 ? 'high' : percent >= 70 ? 'mid' : 'low';
 
   return (
-    <svg className="metric-ring" viewBox="0 0 108 108" aria-hidden="true">
+    <svg className={`metric-ring is-${tone}`} viewBox="0 0 108 108" aria-hidden="true">
       <circle className="metric-ring__track" cx="54" cy="54" r={radius} />
       <circle
         className="metric-ring__bar"
@@ -61,7 +62,7 @@ export default function MetricCards({ metrics, loading }: MetricCardsProps) {
   return (
     <section className="metric-grid">
       {metrics.map((metric) => (
-        <article key={metric.key} className="metric-card">
+        <article key={metric.key} className={`metric-card metric-card--${metric.key}`}>
           <h3 className="metric-card__title">{metric.title}</h3>
           <div className="metric-card__chart">
             {metric.unit === 'percent' ? <RingChart percent={metric.value} /> : <CountChart value={metric.value} />}

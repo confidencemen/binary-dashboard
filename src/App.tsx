@@ -308,12 +308,12 @@ export default function App() {
       theme={{
         algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#1677ff',
-          colorBgBase: '#f5f8fc',
-          colorBorder: '#d7e2ee',
-          colorText: '#1d2b3a',
-          borderRadius: 8,
-          fontSize: 13,
+          colorPrimary: '#0b63e5',
+          colorBgBase: '#f3f6fb',
+          colorBorder: '#c5d4e8',
+          colorText: '#102033',
+          borderRadius: 10,
+          fontSize: 14,
         },
       }}
     >

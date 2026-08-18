@@ -20,7 +20,12 @@ export default function InfoBanner({ summary, loading }: InfoBannerProps) {
       <p>
         <strong>{summary.product}</strong>产品<strong>{summary.version}</strong>版本
         <strong>{summary.mode}</strong>细化分析信息：使用<strong>{summary.chip}</strong>芯片，
-        {summary.hardwareCfiSupported ? '支持' : '不支持'}硬件CFI能力。
+        {summary.hardwareCfiSupported ? (
+          <b className="info-banner__status is-on">支持硬件CFI能力</b>
+        ) : (
+          <b className="info-banner__status is-off">不支持硬件CFI能力</b>
+        )}
+        。
       </p>
     </section>
   );
