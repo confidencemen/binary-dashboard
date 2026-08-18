@@ -256,6 +256,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '手机',
                     product: 'CMM(CosmosU)',
                     version: 'HO7.0.0.37',
+                    enabled: true,
                   },
                 ],
               },
@@ -271,6 +272,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '手机',
                     product: 'ALN(Allen)',
                     version: 'HO7.0.0.37',
+                    enabled: false,
                   },
                   {
                     key: 'ver-phone-ALN-HO6.1.0.135',
@@ -278,6 +280,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '手机',
                     product: 'ALN(Allen)',
                     version: 'HO6.1.0.135',
+                    enabled: false,
                   },
                 ],
               },
@@ -300,6 +303,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: 'PC',
                     product: 'HAD(Harden)',
                     version: 'HO7.0.0.37',
+                    enabled: true,
                   },
                   {
                     key: 'ver-pc-HAD-HO6.1.0.135',
@@ -307,6 +311,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: 'PC',
                     product: 'HAD(Harden)',
                     version: 'HO6.1.0.135',
+                    enabled: false,
                   },
                 ],
               },
@@ -322,6 +327,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: 'PC',
                     product: 'HPR(Hopper)',
                     version: 'HO7.0.0.38',
+                    enabled: false,
                   },
                   {
                     key: 'ver-pc-HPR-HO6.1.0.135',
@@ -329,6 +335,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: 'PC',
                     product: 'HPR(Hopper)',
                     version: 'HO6.1.0.135',
+                    enabled: false,
                   },
                 ],
               },
@@ -351,6 +358,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '平板',
                     product: 'DAL(Dail)',
                     version: 'HO7.0.0.34',
+                    enabled: false,
                   },
                   {
                     key: 'ver-tablet-DAL-HO6.1.0.135',
@@ -358,6 +366,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '平板',
                     product: 'DAL(Dail)',
                     version: 'HO6.1.0.135',
+                    enabled: false,
                   },
                 ],
               },
@@ -380,6 +389,7 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     productLine: '穿戴',
                     product: 'NIZ(Niz)',
                     version: 'HO7.0.0.35',
+                    enabled: false,
                   },
                 ],
               },
@@ -462,6 +472,12 @@ export async function mockStartAnalysis(query: DashboardQuery): Promise<Analysis
   await delay(220);
   if (!isCapabilityEnabled(query.capability)) {
     throw new Error('该安全能力尚未开放，暂不支持启动分析');
+  }
+  const productAllowed =
+    (query.productLine === '手机' && query.product === 'CMM(CosmosU)' && query.version === 'HO7.0.0.37') ||
+    (query.productLine === 'PC' && query.product === 'HAD(Harden)' && query.version === 'HO7.0.0.37');
+  if (!productAllowed) {
+    throw new Error('该产品版本尚未开放，暂不支持启动分析');
   }
   const queryKey = toAnalysisKey(query);
   const job: MockAnalysisJob = {

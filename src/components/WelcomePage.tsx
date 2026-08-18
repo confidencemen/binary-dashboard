@@ -15,7 +15,7 @@ export default function WelcomePage({ productLabel, capabilityLabel }: WelcomePa
 
         <ol className="welcome-page__steps">
           <li>
-            在「产品与版本管理」中选择产品与版本
+            在「产品与版本管理」中选择已开放的产品与版本（当前仅 CMM(CosmosU)/HO7.0.0.37 与 HAD(Harden)/HO7.0.0.37 可选）
             <span>{productLabel || '尚未选择产品版本'}</span>
           </li>
           <li>

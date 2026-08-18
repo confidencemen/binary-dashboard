@@ -25,31 +25,38 @@ interface SideNavProps {
   onStartAnalysis: () => void;
 }
 
+function pendingTitle(title: string) {
+  return (
+    <span className="tree-node--pending">
+      {title}
+      <small>待扩展</small>
+    </span>
+  );
+}
+
 function toProductTree(nodes: ProductVersionNode[]): DataNode[] {
-  return nodes.map((node) => ({
-    key: node.key,
-    title: node.title,
-    selectable: Boolean(node.version),
-    children: node.children ? toProductTree(node.children) : undefined,
-  }));
+  return nodes.map((node) => {
+    const isVersionLeaf = Boolean(node.version);
+    const enabled = isVersionLeaf && node.enabled === true;
+    return {
+      key: node.key,
+      disabled: isVersionLeaf && !enabled,
+      selectable: enabled,
+      title: isVersionLeaf && !enabled ? pendingTitle(node.title) : node.title,
+      children: node.children ? toProductTree(node.children) : undefined,
+    };
+  });
 }
 
 function toCapabilityTree(nodes: CapabilityNode[]): DataNode[] {
   return nodes.map((node) => {
-    const enabled = Boolean(node.capability && node.enabled !== false);
+    const isCapabilityLeaf = Boolean(node.capability);
+    const enabled = isCapabilityLeaf && node.enabled === true;
     return {
       key: node.key,
-      disabled: Boolean(node.capability) && !enabled,
+      disabled: isCapabilityLeaf && !enabled,
       selectable: enabled,
-      title:
-        node.capability && !enabled ? (
-          <span className="tree-node--pending">
-            {node.title}
-            <small>待扩展</small>
-          </span>
-        ) : (
-          node.title
-        ),
+      title: isCapabilityLeaf && !enabled ? pendingTitle(node.title) : node.title,
       children: node.children ? toCapabilityTree(node.children) : undefined,
     };
   });
@@ -105,7 +112,7 @@ export default function SideNav({
     <aside className="side-nav">
       <div className="side-nav__body">
         <div className="side-nav__intro">
-          <p>请分别选择产品版本与安全能力。当前仅「用户态安全能力使能分析」可选择，其余项为后续扩展。</p>
+          <p>请分别选择已开放的产品版本与安全能力。带「待扩展」的项由接口返回的 enabled 字段控制，当前不可选择。</p>
         </div>
 
         <section className="side-nav__section">
@@ -117,7 +124,7 @@ export default function SideNav({
             onSelect={(keys) => {
               const key = String(keys[0] ?? '');
               const node = findProductNode(products, key);
-              if (node?.version && node.product && node.productLine) {
+              if (node?.version && node.product && node.productLine && node.enabled === true) {
                 onProductSelect({
                   key: node.key,
                   productLine: node.productLine,
@@ -138,7 +145,7 @@ export default function SideNav({
             onSelect={(keys) => {
               const key = String(keys[0] ?? '');
               const node = findCapabilityNode(capabilities, key);
-              if (node?.capability && node.enabled !== false) {
+              if (node?.capability && node.enabled === true) {
                 onCapabilitySelect({
                   key: node.key,
                   capability: node.capability,

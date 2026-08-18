@@ -28,6 +28,8 @@ export interface ProductVersionNode {
   productLine?: string;
   product?: string;
   version?: string;
+  /** 版本叶子节点为 true 时前端才允许选择；省略或 false 均不可选。 */
+  enabled?: boolean;
   children?: ProductVersionNode[];
 }
 
@@ -35,6 +37,7 @@ export interface CapabilityNode {
   key: string;
   title: string;
   capability?: CapabilityKey;
+  /** 安全能力叶子节点为 true 时前端才允许选择；省略或 false 均不可选。 */
   enabled?: boolean;
   children?: CapabilityNode[];
 }
