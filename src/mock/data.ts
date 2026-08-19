@@ -219,7 +219,7 @@ const ANALYSIS_STAGES = [
   '汇总统计结果',
 ];
 
-const ANALYSIS_DURATION_MS = 9000;
+const ANALYSIS_DURATION_MS = 1000;
 
 interface MockAnalysisJob {
   jobId: string;

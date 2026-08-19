@@ -10,6 +10,7 @@ const BREAKDOWN_LABELS: Array<{ key: keyof MetricItem['breakdown']; label: strin
   { key: 'system_bin', label: 'system_bin' },
   { key: 'vendor_lib64', label: 'vendor_lib64' },
   { key: 'vendor_bin', label: 'vendor_bin' },
+  { key: 'independent_build', label: 'independent_build' },
 ];
 
 function RingChart({ percent }: { percent: number }) {

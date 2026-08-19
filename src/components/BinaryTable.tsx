@@ -24,7 +24,7 @@ function YnTag({ value }: { value: boolean }) {
 
 const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
   { title: 'Clang-cfi', dataIndex: 'clangCfi' },
-  { title: 'PAC-be', dataIndex: 'pacBe' },
+  { title: 'PAC后向CFI分析', dataIndex: 'pacBe' },
   { title: 'PAC前向CFI分析', dataIndex: 'pacForwardCfi' },
   { title: 'BTI分析', dataIndex: 'bti' },
   { title: '栈保护分析', dataIndex: 'stackProtect' },
