@@ -575,6 +575,16 @@ body {
   white-space: nowrap;
 }
 
+.table-panel .ant-table-filter-trigger {
+  color: var(--table-th-text);
+}
+
+.table-panel .ant-table-filter-trigger:hover,
+.table-panel .ant-table-filter-trigger.active {
+  color: var(--table-th-text);
+  background: rgba(255, 255, 255, 0.18);
+}
+
 .table-panel .ant-table-tbody > tr > td {
   font-weight: 600;
   color: var(--table-td-text);

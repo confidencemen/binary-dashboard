@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type Key } from 'react';
 import { Input, Select, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { BinaryRecord } from '../types/dashboard';
@@ -10,6 +10,11 @@ import type { BinaryRecord } from '../types/dashboard';
  */
 export const SHOW_BINARY_META_COLUMNS = false;
 
+const YN_FILTERS = [
+  { text: 'Y', value: 'Y' },
+  { text: 'N', value: 'N' },
+];
+
 interface BinaryTableProps {
   data: BinaryRecord[];
   loading: boolean;
@@ -20,6 +25,16 @@ interface BinaryTableProps {
 
 function YnTag({ value }: { value: boolean }) {
   return value ? <Tag color="success">Y</Tag> : <Tag color="error">N</Tag>;
+}
+
+function uniqueTextFilters(values: string[]) {
+  return [...new Set(values.filter(Boolean))]
+    .sort((a, b) => a.localeCompare(b, 'zh-CN'))
+    .map((value) => ({ text: value, value }));
+}
+
+function matchesYnFilter(flag: boolean, value: boolean | Key) {
+  return value === 'Y' ? flag : !flag;
 }
 
 const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
@@ -37,27 +52,6 @@ const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
   { title: 'RELRO分析', dataIndex: 'relro' },
 ];
 
-const META_COLUMNS: ColumnsType<BinaryRecord> = [
-  {
-    title: '所属部件',
-    dataIndex: 'component',
-    width: 150,
-    ellipsis: true,
-  },
-  {
-    title: '业务owner',
-    dataIndex: 'owner',
-    width: 150,
-    ellipsis: true,
-  },
-  {
-    title: '源码路径',
-    dataIndex: 'sourcePath',
-    width: 280,
-    ellipsis: true,
-  },
-];
-
 export default function BinaryTable({
   data,
   loading,
@@ -69,26 +63,43 @@ export default function BinaryTable({
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const columns: ColumnsType<BinaryRecord> = useMemo(
-    () => [
-      {
-        title: '二进制列表',
-        dataIndex: 'name',
-        fixed: 'left',
-        width: 180,
-        ellipsis: true,
-      },
-      ...(SHOW_BINARY_META_COLUMNS ? META_COLUMNS : []),
+  const columns: ColumnsType<BinaryRecord> = useMemo(() => {
+    const textColumn = (
+      title: string,
+      dataIndex: keyof BinaryRecord,
+      extra: Partial<ColumnsType<BinaryRecord>[number]> = {},
+    ): ColumnsType<BinaryRecord>[number] => ({
+      title,
+      dataIndex,
+      ellipsis: true,
+      filters: uniqueTextFilters(data.map((item) => String(item[dataIndex] ?? ''))),
+      filterSearch: true,
+      onFilter: (value, record) => String(record[dataIndex] ?? '') === String(value),
+      ...extra,
+    });
+
+    return [
+      textColumn('二进制列表', 'name', { fixed: 'left', width: 180 }),
+      ...(SHOW_BINARY_META_COLUMNS
+        ? [
+            textColumn('所属部件', 'component', { width: 150 }),
+            textColumn('业务owner', 'owner', { width: 150 }),
+            textColumn('源码路径', 'sourcePath', { width: 280 }),
+          ]
+        : []),
       ...FLAG_COLUMNS.map((column) => ({
         title: column.title,
         dataIndex: column.dataIndex,
         width: 140,
         align: 'center' as const,
+        filters: YN_FILTERS,
+        filterMultiple: true,
+        onFilter: (value: boolean | Key, record: BinaryRecord) =>
+          matchesYnFilter(Boolean(record[column.dataIndex]), value),
         render: (value: boolean) => <YnTag value={value} />,
       })),
-    ],
-    [],
-  );
+    ];
+  }, [data]);
 
   const tableScrollX = SHOW_BINARY_META_COLUMNS ? 2100 : 1520;
 
@@ -142,10 +153,14 @@ export default function BinaryTable({
           showSizeChanger: true,
           pageSizeOptions: [10, 20, 50, 100],
           showTotal: (total) => `共 ${total} 条`,
-          onChange: (page, size) => {
-            setCurrent(page);
-            setPageSize(size);
-          },
+        }}
+        onChange={(pagination, _filters, _sorter, extra) => {
+          if (extra.action === 'filter') {
+            setCurrent(1);
+            return;
+          }
+          setCurrent(pagination.current ?? 1);
+          setPageSize(pagination.pageSize ?? pageSize);
         }}
       />
     </section>

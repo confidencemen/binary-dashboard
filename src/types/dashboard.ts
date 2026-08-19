@@ -53,6 +53,7 @@ export interface MetricBreakdown {
   system_bin: number;
   vendor_lib64: number;
   vendor_bin: number;
+  independent_build: number;
 }
 
 export type MetricUnit = 'count' | 'percent';
