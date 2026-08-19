@@ -1,9 +1,17 @@
 <!doctype html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>鸿蒙二进制安全治理看板</title>
+    <script>
+      try {
+        var stored = localStorage.getItem('dashboard-theme');
+        document.documentElement.setAttribute('data-theme', stored === 'dark' ? 'dark' : 'light');
+      } catch (e) {
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -1,8 +1,12 @@
+import type { ThemeMode } from '../theme';
+
 interface HeaderBarProps {
   clock: string;
+  theme: ThemeMode;
+  onToggleTheme: () => void;
 }
 
-export default function HeaderBar({ clock }: HeaderBarProps) {
+export default function HeaderBar({ clock, theme, onToggleTheme }: HeaderBarProps) {
   return (
     <header className="header-bar">
       <div className="header-bar__glow" />
@@ -36,6 +40,14 @@ export default function HeaderBar({ clock }: HeaderBarProps) {
         </div>
       </div>
       <div className="header-bar__right">
+        <button
+          type="button"
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={theme === 'light' ? '切换为暗色风格' : '切换为亮色风格'}
+        >
+          {theme === 'light' ? '暗色风格' : '亮色风格'}
+        </button>
         <span className="header-bar__chip">安全态势可视化</span>
         <time className="header-bar__clock">{clock}</time>
       </div>

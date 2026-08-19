@@ -28,7 +28,7 @@ export default function AnalysisProgressPanel({
           <Progress
             percent={percent}
             status={completed ? 'success' : 'active'}
-            strokeColor={completed ? '#52c41a' : { from: '#1677ff', to: '#36cfc9' }}
+            strokeColor={completed ? 'var(--stage-done)' : { from: 'var(--accent)', to: 'var(--accent-2)' }}
           />
           <p className="progress-page__message">{progress?.message || '正在连接分析服务…'}</p>
         </div>

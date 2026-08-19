@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { App as AntdApp, ConfigProvider, Spin, theme } from 'antd';
+import { App as AntdApp, ConfigProvider, Spin } from 'antd';
 import zhCN from 'antd/locale/zh_CN';
 import {
   checkAnalysisStatus,
@@ -19,6 +19,13 @@ import type {
   CapabilityKey,
   NavTreeData,
 } from './types/dashboard';
+import {
+  darkAntdTheme,
+  lightAntdTheme,
+  persistTheme,
+  readStoredTheme,
+  type ThemeMode,
+} from './theme';
 import './index.css';
 
 type ViewMode = 'welcome' | 'analyzing' | 'results';
@@ -35,7 +42,12 @@ function formatClock(date: Date): string {
   });
 }
 
-function DashboardApp() {
+interface DashboardAppProps {
+  themeMode: ThemeMode;
+  onToggleTheme: () => void;
+}
+
+function DashboardApp({ themeMode, onToggleTheme }: DashboardAppProps) {
   const { message } = AntdApp.useApp();
   const [clock, setClock] = useState(() => formatClock(new Date()));
   const [nav, setNav] = useState<NavTreeData | null>(null);
@@ -220,7 +232,7 @@ function DashboardApp() {
 
   return (
     <div className="app-shell">
-      <HeaderBar clock={clock} />
+      <HeaderBar clock={clock} theme={themeMode} onToggleTheme={onToggleTheme} />
       <div className="app-body">
         {loadingNav && !nav ? (
           <aside className="side-nav side-nav--loading">
@@ -302,23 +314,20 @@ function DashboardApp() {
 }
 
 export default function App() {
+  const [themeMode, setThemeMode] = useState<ThemeMode>(() => readStoredTheme());
+
+  useEffect(() => {
+    persistTheme(themeMode);
+  }, [themeMode]);
+
+  const handleToggleTheme = useCallback(() => {
+    setThemeMode((current) => (current === 'light' ? 'dark' : 'light'));
+  }, []);
+
   return (
-    <ConfigProvider
-      locale={zhCN}
-      theme={{
-        algorithm: theme.defaultAlgorithm,
-        token: {
-          colorPrimary: '#0b63e5',
-          colorBgBase: '#f3f6fb',
-          colorBorder: '#c5d4e8',
-          colorText: '#102033',
-          borderRadius: 10,
-          fontSize: 14,
-        },
-      }}
-    >
+    <ConfigProvider locale={zhCN} theme={themeMode === 'dark' ? darkAntdTheme : lightAntdTheme}>
       <AntdApp>
-        <DashboardApp />
+        <DashboardApp themeMode={themeMode} onToggleTheme={handleToggleTheme} />
       </AntdApp>
     </ConfigProvider>
   );
