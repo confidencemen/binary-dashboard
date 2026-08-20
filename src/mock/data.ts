@@ -54,6 +54,14 @@ export async function mockFetchNavTree(): Promise<NavTreeData> {
                     version: 'HO7.0.0.37',
                     enabled: true,
                   },
+                  {
+                    key: 'ver-phone-CMM-HO7.0.0.21',
+                    title: 'HO7.0.0.21',
+                    productLine: '手机',
+                    product: 'CMM(CosmosU)',
+                    version: 'HO7.0.0.21',
+                    enabled: true,
+                  },
                 ],
               },
               {
@@ -264,14 +272,21 @@ function buildProgressSnapshot(job: MockAnalysisJob): AnalysisProgress {
   };
 }
 
+const ANALYZABLE_PRODUCTS: Array<Pick<DashboardQuery, 'productLine' | 'product' | 'version'>> = [
+  { productLine: '手机', product: 'CMM(CosmosU)', version: 'HO7.0.0.37' },
+  { productLine: '手机', product: 'CMM(CosmosU)', version: 'HO7.0.0.21' },
+  { productLine: 'PC', product: 'HAD(Harden)', version: 'HO7.0.0.37' },
+];
+
 export async function mockStartAnalysis(query: DashboardQuery): Promise<AnalysisStartResult> {
   await delay(220);
   if (!isCapabilityEnabled(query.capability)) {
     throw new Error('该安全能力尚未开放，暂不支持启动分析');
   }
-  const productAllowed =
-    (query.productLine === '手机' && query.product === 'CMM(CosmosU)' && query.version === 'HO7.0.0.37') ||
-    (query.productLine === 'PC' && query.product === 'HAD(Harden)' && query.version === 'HO7.0.0.37');
+  const productAllowed = ANALYZABLE_PRODUCTS.some(
+    (item) =>
+      item.productLine === query.productLine && item.product === query.product && item.version === query.version,
+  );
   if (!productAllowed) {
     throw new Error('该产品版本尚未开放，暂不支持启动分析');
   }
