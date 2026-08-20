@@ -1,63 +1,63 @@
-import type { BinaryRecord, DashboardData, MetricItem, AnalysisSummary } from '../../types/dashboard';
+import { DEFAULT_BINARY_COLUMNS } from '../../constants/binaryColumns';
+import type {
+  AnalysisSummary,
+  BinaryCellValue,
+  BinaryColumnDef,
+  BinaryRecord,
+  DashboardData,
+  MetricItem,
+} from '../../types/dashboard';
 
 /**
- * flags 共 12 位，按表格列从左到右：
- * Clang-cfi / PAC-be / PAC前向CFI / BTI / 栈保护 / retGuard /
- * PAC-DFI / UBSAN / 缓冲区溢出 / 整数溢出 / PIE / RELRO
- * Y = 使能，N = 未使能
+ * mock 行数据。
+ * - flags：按 DEFAULT_BINARY_COLUMNS 顺序，每位一个单字符取值（当前多为 Y/N）。
+ * - values：显式列 key → 取值，适合多字符结果（如 NA、PARTIAL）；会覆盖 flags 中的同名列。
  */
 export interface BinaryDraft {
   name: string;
   component: string;
   owner: string;
   sourcePath: string;
-  flags: string;
+  flags?: string;
+  values?: Record<string, BinaryCellValue>;
 }
 
 export interface DashboardDraft {
   summary: AnalysisSummary;
   metrics: MetricItem[];
+  binaryColumns?: BinaryColumnDef[];
   binaries: BinaryDraft[];
 }
 
-const FLAG_KEYS: Array<keyof Omit<BinaryRecord, 'id' | 'name' | 'component' | 'owner' | 'sourcePath'>> = [
-  'clangCfi',
-  'pacBe',
-  'pacForwardCfi',
-  'bti',
-  'stackProtect',
-  'retGuard',
-  'pacDfi',
-  'ubsan',
-  'bufferOverflow',
-  'integerOverflow',
-  'pie',
-  'relro',
-];
-
-function parseFlags(flags: string): Pick<BinaryRecord, (typeof FLAG_KEYS)[number]> {
+function parseCompactFlags(flags: string): Record<string, BinaryCellValue> {
   const chars = flags.replace(/\s/g, '');
-  if (chars.length !== FLAG_KEYS.length || /[^YNyn]/.test(chars)) {
-    throw new Error(`flags 必须是 ${FLAG_KEYS.length} 位 Y/N：${flags}`);
+  if (chars.length !== DEFAULT_BINARY_COLUMNS.length) {
+    throw new Error(
+      `flags 长度须为 ${DEFAULT_BINARY_COLUMNS.length}（按默认列顺序，每位一个取值）：${flags}`,
+    );
   }
-  const record = {} as Pick<BinaryRecord, (typeof FLAG_KEYS)[number]>;
-  FLAG_KEYS.forEach((key, index) => {
-    record[key] = chars[index].toUpperCase() === 'Y';
-  });
-  return record;
+  return Object.fromEntries(
+    DEFAULT_BINARY_COLUMNS.map((column, index) => [column.key, chars[index].toUpperCase()]),
+  );
+}
+
+function resolveValues(item: BinaryDraft): Record<string, BinaryCellValue> {
+  const fromFlags = item.flags ? parseCompactFlags(item.flags) : {};
+  return { ...fromFlags, ...item.values };
 }
 
 export function assembleDashboard(draft: DashboardDraft): DashboardData {
   return {
     summary: draft.summary,
     metrics: draft.metrics,
+    binaryColumns: draft.binaryColumns ?? DEFAULT_BINARY_COLUMNS,
     binaries: draft.binaries.map((item, index) => ({
       id: `${draft.summary.product}-${draft.summary.version}-${index}`,
       name: item.name,
       component: item.component,
       owner: item.owner,
       sourcePath: item.sourcePath,
-      ...parseFlags(item.flags),
-    })),
+      values: resolveValues(item),
+    } satisfies BinaryRecord)),
   };
 }

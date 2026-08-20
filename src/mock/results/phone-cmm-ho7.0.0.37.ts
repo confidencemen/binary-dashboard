@@ -3,7 +3,7 @@ import { assembleDashboard } from './helpers';
 /**
  * 手机 → CMM(CosmosU) → HO7.0.0.37
  * 修改本文件即可单独调整该产品版本的结果展示。
- * binaries.flags 为 12 位 Y/N，对应表格从 Clang-cfi 到 RELRO。
+ * binaries.flags 为按列顺序的紧凑取值（当前多为 Y/N）；多字符取值请改用 values。
  */
 const phoneCmmHo70037 = assembleDashboard({
   summary: {
@@ -58,6 +58,37 @@ const phoneCmmHo70037 = assembleDashboard({
     },
   ],
   binaries: [
+    {
+      name: 'libvalues_demo.so',
+      component: 'example',
+      owner: '示例 00000001',
+      sourcePath: 'example/values_field',
+      values: {
+        clangCfi: 'Y',
+        pacBe: 'N',
+        pacForwardCfi: 'NA',
+        bti: 'PARTIAL',
+        stackProtect: 'Y',
+        retGuard: 'NA',
+        pacDfi: 'N',
+        ubsan: 'Y',
+        bufferOverflow: 'PARTIAL',
+        integerOverflow: 'Y',
+        pie: 'Y',
+        relro: 'N',
+      },
+    },
+    {
+      name: 'libvalues_override.so',
+      component: 'example',
+      owner: '示例 00000002',
+      sourcePath: 'example/values_override',
+      flags: 'YYYYYYYYYYYY',
+      values: {
+        bti: 'NA',
+        retGuard: 'PARTIAL',
+      },
+    },
     { name: 'libhwui.so', component: 'graphic', owner: '张伟 00381234', sourcePath: 'foundation/graphic/graphic_2d', flags: 'YYYYYYNYYYYY' },
     { name: 'libbinder.so', component: 'ipc', owner: '李娜 00384567', sourcePath: 'foundation/communication/ipc', flags: 'YYYYYYYYYYYY' },
     { name: 'libc.so', component: 'musl', owner: '王强 00382301', sourcePath: 'third_party/musl', flags: 'YYYYYYNYYYYY' },

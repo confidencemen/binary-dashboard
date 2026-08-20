@@ -79,6 +79,12 @@ html[data-theme="dark"] {
   --tag-n-bg: rgba(255, 107, 122, 0.18);
   --tag-n-text: #ff8b96;
   --tag-n-border: rgba(255, 107, 122, 0.4);
+  --tag-other-bg: rgba(255, 255, 255, 0.1);
+  --tag-other-text: #d5e8ff;
+  --tag-other-border: rgba(90, 168, 255, 0.35);
+  --tag-partial-bg: rgba(215, 177, 90, 0.2);
+  --tag-partial-text: #f0d48a;
+  --tag-partial-border: rgba(215, 177, 90, 0.45);
   --welcome-card-bg: linear-gradient(180deg, #13253c 0%, #0e1c2f 100%);
   --welcome-step-bg: rgba(8, 18, 32, 0.55);
   --welcome-span: #5ec8ff;

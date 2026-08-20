@@ -80,6 +80,12 @@ html[data-theme="light"] {
   --tag-n-bg: #ffe2d6;
   --tag-n-text: #b42318;
   --tag-n-border: #f0b09a;
+  --tag-other-bg: #e8eef6;
+  --tag-other-text: #35506c;
+  --tag-other-border: #b7c6d8;
+  --tag-partial-bg: #fff4d6;
+  --tag-partial-text: #8a5a00;
+  --tag-partial-border: #e6c36a;
   --welcome-card-bg: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
   --welcome-step-bg: #f7faff;
   --welcome-span: #0b63e5;

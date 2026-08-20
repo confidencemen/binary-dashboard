@@ -60,6 +60,7 @@ export default function UserEnablementPanel({
       <MetricCards metrics={data?.metrics ?? []} loading={loading} />
       <BinaryTable
         data={data?.binaries ?? []}
+        binaryColumns={data?.binaryColumns}
         loading={loading}
         keyProcessOptions={keyProcessOptions}
         keyProcess={keyProcess}

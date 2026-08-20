@@ -74,29 +74,31 @@ export interface AnalysisSummary {
   hardwareCfiSupported: boolean;
 }
 
+/** 表格分析列的单元格取值。当前多为 Y/N，后续可扩展 NA、PARTIAL 等任意字符串。 */
+export type BinaryCellValue = string;
+
+/** 分析列表头定义。可由后端随看板数据下发，缺省时前端使用内置列。 */
+export interface BinaryColumnDef {
+  key: string;
+  title: string;
+  width?: number;
+}
+
 export interface BinaryRecord {
   id: string;
   name: string;
   component: string;
   owner: string;
   sourcePath: string;
-  clangCfi: boolean;
-  pacBe: boolean;
-  pacForwardCfi: boolean;
-  bti: boolean;
-  stackProtect: boolean;
-  retGuard: boolean;
-  pacDfi: boolean;
-  ubsan: boolean;
-  bufferOverflow: boolean;
-  integerOverflow: boolean;
-  pie: boolean;
-  relro: boolean;
+  /** 分析列取值，key 与 BinaryColumnDef.key 对应。 */
+  values: Record<string, BinaryCellValue>;
 }
 
 export interface DashboardData {
   summary: AnalysisSummary;
   metrics: MetricItem[];
+  /** 表格分析列；省略时前端回退到内置列定义。 */
+  binaryColumns?: BinaryColumnDef[];
   binaries: BinaryRecord[];
 }
 

@@ -573,6 +573,7 @@ body {
   color: var(--table-th-text) !important;
   font-weight: 700;
   white-space: nowrap;
+  font-size: 12px;
 }
 
 .table-panel .ant-table-filter-trigger {
@@ -590,18 +591,35 @@ body {
   color: var(--table-td-text);
 }
 
+.table-panel .ant-tag {
+  font-weight: 800;
+  min-width: 28px;
+  padding: 0 6px;
+  text-align: center;
+}
+
 .table-panel .ant-tag-success {
   color: var(--tag-y-text);
   background: var(--tag-y-bg);
   border-color: var(--tag-y-border);
-  font-weight: 800;
 }
 
 .table-panel .ant-tag-error {
   color: var(--tag-n-text);
   background: var(--tag-n-bg);
   border-color: var(--tag-n-border);
-  font-weight: 800;
+}
+
+.table-panel .ant-tag-warning {
+  color: var(--tag-partial-text);
+  background: var(--tag-partial-bg);
+  border-color: var(--tag-partial-border);
+}
+
+.table-panel .ant-tag:not(.ant-tag-success):not(.ant-tag-error):not(.ant-tag-warning) {
+  color: var(--tag-other-text);
+  background: var(--tag-other-bg);
+  border-color: var(--tag-other-border);
 }
 
 .welcome-page,

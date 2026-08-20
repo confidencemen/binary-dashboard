@@ -1,7 +1,8 @@
 import { useMemo, useState, type Key } from 'react';
 import { Input, Select, Table, Tag } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { BinaryRecord } from '../types/dashboard';
+import { CELL_VALUE_TONES, DEFAULT_BINARY_COLUMNS } from '../constants/binaryColumns';
+import type { BinaryCellValue, BinaryColumnDef, BinaryRecord } from '../types/dashboard';
 
 /**
  * 控制表格是否显示「所属部件 / 业务owner / 源码路径」。
@@ -10,47 +11,26 @@ import type { BinaryRecord } from '../types/dashboard';
  */
 export const SHOW_BINARY_META_COLUMNS = false;
 
-const YN_FILTERS = [
-  { text: 'Y', value: 'Y' },
-  { text: 'N', value: 'N' },
-];
-
 interface BinaryTableProps {
   data: BinaryRecord[];
   loading: boolean;
   keyProcessOptions: string[];
   keyProcess: string;
   onKeyProcessChange: (value: string) => void;
+  binaryColumns?: BinaryColumnDef[];
 }
 
-function YnTag({ value }: { value: boolean }) {
-  return value ? <Tag color="success">Y</Tag> : <Tag color="error">N</Tag>;
-}
-
-function uniqueTextFilters(values: string[]) {
+function uniqueValueFilters(values: BinaryCellValue[]) {
   return [...new Set(values.filter(Boolean))]
     .sort((a, b) => a.localeCompare(b, 'zh-CN'))
     .map((value) => ({ text: value, value }));
 }
 
-function matchesYnFilter(flag: boolean, value: boolean | Key) {
-  return value === 'Y' ? flag : !flag;
+function CellTag({ value }: { value?: BinaryCellValue }) {
+  const text = value?.trim() ? value : '-';
+  const tone = CELL_VALUE_TONES[text.toUpperCase()] ?? 'default';
+  return <Tag color={tone}>{text}</Tag>;
 }
-
-const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
-  { title: 'Clang-cfi', dataIndex: 'clangCfi' },
-  { title: 'PAC后向CFI', dataIndex: 'pacBe' },
-  { title: 'PAC前向CFI', dataIndex: 'pacForwardCfi' },
-  { title: 'BTI', dataIndex: 'bti' },
-  { title: '栈保护', dataIndex: 'stackProtect' },
-  { title: 'retGuard后向CFI', dataIndex: 'retGuard' },
-  { title: 'PAC-DFI', dataIndex: 'pacDfi' },
-  { title: 'UBSAN', dataIndex: 'ubsan' },
-  { title: '缓冲区溢出', dataIndex: 'bufferOverflow' },
-  { title: '整数溢出', dataIndex: 'integerOverflow' },
-  { title: 'PIE覆盖率', dataIndex: 'pie' },
-  { title: 'RELRO', dataIndex: 'relro' },
-];
 
 export default function BinaryTable({
   data,
@@ -58,23 +38,25 @@ export default function BinaryTable({
   keyProcessOptions,
   keyProcess,
   onKeyProcessChange,
+  binaryColumns,
 }: BinaryTableProps) {
   const [keyword, setKeyword] = useState('');
   const [current, setCurrent] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const analysisColumns = binaryColumns?.length ? binaryColumns : DEFAULT_BINARY_COLUMNS;
 
   const columns: ColumnsType<BinaryRecord> = useMemo(() => {
     const textColumn = (
       title: string,
-      dataIndex: keyof BinaryRecord,
+      dataIndex: keyof Pick<BinaryRecord, 'component' | 'owner' | 'sourcePath'>,
       extra: Partial<ColumnsType<BinaryRecord>[number]> = {},
     ): ColumnsType<BinaryRecord>[number] => ({
       title,
       dataIndex,
       ellipsis: true,
-      filters: uniqueTextFilters(data.map((item) => String(item[dataIndex] ?? ''))),
+      filters: uniqueValueFilters(data.map((item) => item[dataIndex] ?? '')),
       filterSearch: true,
-      onFilter: (value, record) => String(record[dataIndex] ?? '') === String(value),
+      onFilter: (value, record) => record[dataIndex] === String(value),
       ...extra,
     });
 
@@ -93,21 +75,23 @@ export default function BinaryTable({
             textColumn('源码路径', 'sourcePath', { width: 280 }),
           ]
         : []),
-      ...FLAG_COLUMNS.map((column) => ({
+      ...analysisColumns.map((column) => ({
         title: column.title,
-        dataIndex: column.dataIndex,
-        width: 140,
+        key: column.key,
+        dataIndex: ['values', column.key],
+        width: column.width ?? 140,
         align: 'center' as const,
-        filters: YN_FILTERS,
+        filters: uniqueValueFilters(data.map((item) => item.values?.[column.key] ?? '')),
         filterMultiple: true,
         onFilter: (value: boolean | Key, record: BinaryRecord) =>
-          matchesYnFilter(Boolean(record[column.dataIndex]), value),
-        render: (value: boolean) => <YnTag value={value} />,
+          (record.values?.[column.key] ?? '') === String(value),
+        render: (value: BinaryCellValue) => <CellTag value={value} />,
       })),
     ];
-  }, [data]);
+  }, [analysisColumns, data]);
 
-  const tableScrollX = SHOW_BINARY_META_COLUMNS ? 2100 : 1520;
+  const tableScrollX =
+    (SHOW_BINARY_META_COLUMNS ? 860 : 280) + analysisColumns.reduce((sum, column) => sum + (column.width ?? 140), 0);
 
   const filtered = useMemo(() => {
     const text = keyword.trim().toLowerCase();
