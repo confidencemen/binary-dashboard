@@ -6,10 +6,10 @@ interface MetricCardsProps {
 }
 
 const BREAKDOWN_LABELS: Array<{ key: keyof MetricItem['breakdown']; label: string }> = [
-  { key: 'system_lib64', label: 'system_lib64' },
-  { key: 'system_bin', label: 'system_bin' },
-  { key: 'vendor_lib64', label: 'vendor_lib64' },
-  { key: 'vendor_bin', label: 'vendor_bin' },
+  { key: 'system_lib64', label: 'system/lib64' },
+  { key: 'system_bin', label: 'system/bin' },
+  { key: 'vendor_lib64', label: 'vendor/lib64' },
+  { key: 'vendor_bin', label: 'vendor/bin' },
   { key: 'independent_build', label: 'independent_build' },
 ];
 
@@ -49,6 +49,22 @@ function CountChart({ value }: { value: number }) {
   );
 }
 
+function formatBreakdownValue(
+  metric: MetricItem,
+  key: keyof MetricItem['breakdown'],
+  totalBreakdown?: MetricItem['breakdown'],
+): string {
+  const raw = metric.breakdown[key];
+  if (metric.key === 'total' || metric.unit === 'count') {
+    return raw.toLocaleString();
+  }
+  const denominator = totalBreakdown?.[key] ?? 0;
+  if (denominator <= 0) {
+    return '0.0%';
+  }
+  return `${((raw / denominator) * 100).toFixed(1)}%`;
+}
+
 export default function MetricCards({ metrics, loading }: MetricCardsProps) {
   if (loading && metrics.length === 0) {
     return (
@@ -59,6 +75,8 @@ export default function MetricCards({ metrics, loading }: MetricCardsProps) {
       </section>
     );
   }
+
+  const totalBreakdown = metrics.find((item) => item.key === 'total')?.breakdown;
 
   return (
     <section className="metric-grid">
@@ -72,7 +90,7 @@ export default function MetricCards({ metrics, loading }: MetricCardsProps) {
             {BREAKDOWN_LABELS.map((item) => (
               <li key={item.key}>
                 <span>{item.label}</span>
-                <strong>{metric.breakdown[item.key].toLocaleString()}</strong>
+                <strong>{formatBreakdownValue(metric, item.key, totalBreakdown)}</strong>
               </li>
             ))}
           </ul>

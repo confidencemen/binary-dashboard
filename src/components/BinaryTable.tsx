@@ -39,17 +39,17 @@ function matchesYnFilter(flag: boolean, value: boolean | Key) {
 
 const FLAG_COLUMNS: Array<{ title: string; dataIndex: keyof BinaryRecord }> = [
   { title: 'Clang-cfi', dataIndex: 'clangCfi' },
-  { title: 'PAC后向CFI分析', dataIndex: 'pacBe' },
-  { title: 'PAC前向CFI分析', dataIndex: 'pacForwardCfi' },
-  { title: 'BTI分析', dataIndex: 'bti' },
-  { title: '栈保护分析', dataIndex: 'stackProtect' },
-  { title: 'retGuard后向CFI分析', dataIndex: 'retGuard' },
-  { title: 'PAC-DFI分析', dataIndex: 'pacDfi' },
-  { title: 'UBSAN分析', dataIndex: 'ubsan' },
-  { title: '缓冲区溢出分析', dataIndex: 'bufferOverflow' },
-  { title: '整数溢出分析', dataIndex: 'integerOverflow' },
-  { title: 'PIE覆盖率分析', dataIndex: 'pie' },
-  { title: 'RELRO分析', dataIndex: 'relro' },
+  { title: 'PAC后向CFI', dataIndex: 'pacBe' },
+  { title: 'PAC前向CFI', dataIndex: 'pacForwardCfi' },
+  { title: 'BTI', dataIndex: 'bti' },
+  { title: '栈保护', dataIndex: 'stackProtect' },
+  { title: 'retGuard后向CFI', dataIndex: 'retGuard' },
+  { title: 'PAC-DFI', dataIndex: 'pacDfi' },
+  { title: 'UBSAN', dataIndex: 'ubsan' },
+  { title: '缓冲区溢出', dataIndex: 'bufferOverflow' },
+  { title: '整数溢出', dataIndex: 'integerOverflow' },
+  { title: 'PIE覆盖率', dataIndex: 'pie' },
+  { title: 'RELRO', dataIndex: 'relro' },
 ];
 
 export default function BinaryTable({
@@ -79,7 +79,13 @@ export default function BinaryTable({
     });
 
     return [
-      textColumn('二进制列表', 'name', { fixed: 'left', width: 180 }),
+      {
+        title: '二进制列表',
+        dataIndex: 'name',
+        fixed: 'left',
+        width: 280,
+        ellipsis: true,
+      },
       ...(SHOW_BINARY_META_COLUMNS
         ? [
             textColumn('所属部件', 'component', { width: 150 }),
